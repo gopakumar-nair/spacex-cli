@@ -5,7 +5,6 @@ import logging
 from typing import Iterator, Dict, Any, Callable, Optional
 from .ApiCaller import ApiCaller
 from .CacheManager import CacheManager
-from .DataPipeline import DataPipeline
 import config
 
 
@@ -33,7 +32,7 @@ class LaunchDataAccess:
         self,
         refresh: bool,
         onError: Callable[[int, str], None]
-    ) -> Optional[DataPipeline]:
+    ) -> Optional[Iterator[Dict[str, Any]]]:
         """
         Fetch launch data from cache if file exists and refresh is false, else call API.  
         
@@ -42,7 +41,7 @@ class LaunchDataAccess:
             onError: Callback function called with (error_code, error_message) on error (required)
         
         Returns:
-            DataPipeline object if successful, None if error occurred
+            Iterator of launch dictionaries if successful, None if error occurred
         """
         # Try cache first if not refreshing
         if self.cache_manager.is_valid(refresh):
@@ -53,7 +52,7 @@ class LaunchDataAccess:
                 def cache_iterator():
                     for item in cached_data:
                         yield item
-                return DataPipeline(cache_iterator())
+                return cache_iterator()
             else:
                 self.logger.debug("Cache load failed, fetching from API")
         else:
@@ -76,9 +75,9 @@ class LaunchDataAccess:
                 # Cache save failure should not stop execution
                 self.logger.debug("Cache save failed, continuing without cache")
         
-        # Return as iterator wrapped in pipeline
+        # Return as iterator
         def api_iterator():
             for item in data:
                 yield item
         
-        return DataPipeline(api_iterator())
+        return api_iterator()

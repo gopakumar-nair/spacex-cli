@@ -26,9 +26,9 @@ class Pipeline:
             self.logger.debug(f"Error {error_code}: {error_message}")
             sys.exit(error_code)
         
-        pipeline = self.data_access.fetch(refresh=refresh, onError=handle_error)
-        if pipeline:
-            self.data_iterator = pipeline.data_iterator
+        data_iterator = self.data_access.fetch(refresh=refresh, onError=handle_error)
+        if data_iterator:
+            self.data_iterator = data_iterator
             self.logger.debug("Data fetched successfully")
         else:
             # Error already handled by onError callback
